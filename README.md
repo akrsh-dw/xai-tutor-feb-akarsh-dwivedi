@@ -1,6 +1,6 @@
-# Document Management System (DMS) Backend - Backend Assessment
+# Invoicing System Backend - Backend Assessment
 
-**Time Limit: 90 minutes**
+**Time Limit: 60 minutes**
 
 ## Important Instructions
 
@@ -10,7 +10,7 @@
 > 
 > **3. Application must be runnable with `docker-compose up` command**
 > 
-> **4. Complete as many APIs as possible within the 60-minute time limit**
+> **4. Complete as many APIs as possible within the time limit**
 > 
 > **5. Prioritize working functionality - do not submit broken code that fails to run with `docker-compose up`**
 
@@ -21,76 +21,51 @@
 
 ---
 
-A FastAPI backend project with SQLite database using raw SQL queries (no ORM).
+A FastAPI backend project with SQLite database.
 
 ## Objective
 
-Build a backend API for a Document Management System that allows users to manage files and folders in a hierarchical structure, similar to the backend of Google Drive or Dropbox.
+Build a backend API for an **Invoicing System** that allows users to create and manage invoices.
 
 ## Functional Requirements
 
-### User Authentication
-- User registration
-- User login with JWT access token
-- Multi-user support (each user has their own file/folder hierarchy)
+### Single User System
+- No authentication required. The system is designed for a single user.
 
-### Folder Management
-- Create new folders
-- Rename existing folders
-- Delete folders (handling non-empty folders appropriately)
-- Support for nested folder structures (folders within folders)
+### Invoice Management
+- User should be able to create invoices
+- User should be able to list invoices
+- User should be able to get an invoice by ID
+- User should be able to delete an invoice
 
-### File Management
-- Upload files (base64 encoded)
-- Download files
-- Rename files
-- Delete files
-- Retrieve file metadata (e.g., name, size, type)
-- Move files to different folders
+An invoice consists of:
+- **Client**
+- **Products** (items)
 
-## Required APIs
+For **products** and **clients**, do not create APIs—use seed data. The developer needs to design the database schema and APIs for the invoicing system.
 
-### Authentication
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/auth/register` | Register a new user |
-| `POST` | `/auth/login` | Login and receive JWT access token |
 
-### Folders (Protected - requires JWT)
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/folders` | Create a new folder (payload: `name`, `parent_folder_id`) |
-| `GET` | `/folders/{folderId}` | Get folder metadata and list its contents (files and subfolders) |
-| `PATCH` | `/folders/{folderId}` | Rename a folder (payload: `name`) |
-| `DELETE` | `/folders/{folderId}` | Delete a folder |
 
-### Files (Protected - requires JWT)
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/files` | Upload a file (payload: `name`, `content` (base64), `parent_folder_id`) |
-| `GET` | `/files/{fileId}` | Get file metadata |
-| `GET` | `/files/{fileId}/download` | Download file content |
-| `PATCH` | `/files/{fileId}` | Rename a file (payload: `name`) |
-| `DELETE` | `/files/{fileId}` | Delete a file |
+## Data Requirements (Fields)
 
-## Data Models
-
-### User Model
-- email
-- password
-
-### Folder Model
+### Product (seed data only)
 - name
-- user (owner)
-- parent folder (can be null)
+- price
 
-### File Model
+### Client (seed data only)
 - name
-- content (base64 encoded)
-- size
-- mime type
-- user (owner)
-- parent folder (can be null)
+- address
+- company registration no.
+
+### Invoice
+- Invoice no
+- issue date
+- due date
+- client
+- address
+- items
+- tax
+- total
 
 ## Quick Start (Docker)
 
@@ -102,7 +77,7 @@ docker-compose up --build
 
 This will:
 - Build the Docker image
-- Run database migrations automatically
+- Run database migrations automatically (if applicable)
 - Start the API server at `http://localhost:8000`
 
 To stop the application:
@@ -126,7 +101,7 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 3. Run database migrations
+### 3. Run database migrations (if applicable)
 
 ```bash
 python migrate.py upgrade
@@ -164,21 +139,3 @@ python migrate.py downgrade
 ```bash
 python migrate.py list
 ```
-
-## Business Logic Notes
-
-### Folder Deletion
-When deleting a folder, you should handle one of the following strategies:
-- **Recursive delete**: Delete the folder and all its contents (subfolders and files)
-- **Prevent deletion**: Return an error if the folder is not empty
-- Document your chosen approach in the API response
-
-### File Upload (Base64)
-- Files should be uploaded as base64-encoded strings in the request body
-- The server should decode the base64 content and store the binary data
-- Calculate and store the file size from the decoded content
-- Optionally detect MIME type from file extension or content
-
-### Root Level Items
-- Files and folders with `parent_folder_id = NULL` are at the root level
-- Each user has their own root level (isolated file systems per user)
